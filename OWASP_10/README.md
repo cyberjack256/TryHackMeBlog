@@ -18,8 +18,77 @@ The 34 Common Weakness Enumerations (CWEs) mapped to Broken Access Control had m
  `Cryptographic Failures` previously `Sensitive Data Exposure`; which was a broad symptom rather than a root cause. The renewed focus of the category is on failures related to cryptography which often leads to sensitive data exposure or system compromise.
 
 ## Injection
+For common types of injection
+1. [SQL Injection](#sql_injection)
+2. [Command Injection](#command_injection)
+3. [Remote Code Injection](#remote_code_injection)
+5. [Cross-site Scripting](#xss/cross-site-scripting)
+4. [File Upload Vulnerabilities Vulnerability Exploitation](#file_upload_vulnerabilities)
 
-includes Cross-site Scripting
+### SQL_Injection
+
+`SQL Injection` attacks target websites that use an unerlying SQL-database and construct data queries to the database in an insecure manner.
+
+**What is SQL**
+`Structured Query Language (SQL)`, extracts data and data structures in relational databases. Relational databases, store data in tables; each row in a table is a `data item` SQL syntax allows applications such as webservers to add rows to the database by using `INSERT` statements, read rows by using `SELECT` statements, update rows by using `UPDATE` statements, and remove rows by using `DELETE` statements. EXAMPLES:
+
+```SQL
+INSERT INTO users (email, encrypted_password)
+VALUES ('jack@gmail.com', '$10$WMT8Z')
+
+SELECT FROM users WHERE email='jack@gmail.com'
+AND encrypted_password = '$10$WMT8Z'
+
+UPDATE TABLE users encrypted_password = '$3D$MW10Y'
+WHERE email='jack@gmail.com'
+
+DELETE FROM users WHERE email = 'jack@gmail.com'
+```
+
+**SQL Injection Attacks**
+SQL injection attacks occur when the web server insecurely constrcts the SQL statement it passes to the database driver. This allows the attacker to pass arguments via the HTTP request that cause the drivers to perform undesired actions. 
+
+EXAMPLE 1:
+
+```HTTP REQUEST
+Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+Statement statement = connection.createStatement();
+String sql = "SELECT * FROM users WHERE email = '" + email + "' AND encrypted_password='" + password + "'";
+
+```
+
+The snippet uses the `email` and `password` parameters taken from the `HTTP request`, and inserts them directly into the SQL statement. Because the parameters aren't checked for SQL control characters (e.g, ') that change the meaning of the SQL statement a hacker can craft input that bypasses the websites authentication system. 
+
+
+EXAMPLE 2:
+
+```HTTP REQUEST
+statement.executeQuery(
+    "Select * FROM users WHERE email='jack@gmail.com' --' AND encrypted_password='Z$DSA92H0'");
+```
+
+The snippet shows the attacker passing the user `email` parameter as `jack@gmail.com'--`, which terminates the SQL statement early and causes the password-checking logic to not execute. The database driver executes only the SQL statement `--`, and ignores everything that comes after `AND encrypted_password='Z$DSA92H0'`
+
+EXAMPLE 3:
+
+```HTTP REQUEST
+statement.executeQuery(
+    "Select * FROM users WHERE email='jack@gmail.com';
+    DROP TABLE users; --' AND encrypted_password='Z$DSA92H0'");
+```
+
+The snippet shows the attacker passing the `email` parameter as `jack@gmail.com; DROP TABLE users;--`. the `;` terminates the first SQL statement `Select * FROM users WHERE email='jack@gmail.com'`, after which the attacker inserts an additional, malicious statement `DROP TABLE users`.
+
+**SQL Injection Mitigations**
+Security Control 1:
+Security Control 2:
+Security Control 3:
+Security Control 4:
+
+### xss/cross-site-scripting
+`Cross-site Scripting`
+
+
 
 ## Insecure_Design
 
@@ -45,4 +114,4 @@ The former category `XML External Entities (XXE)` is part of this category.
 
 `Secure Logging & Monitoring Failures` was previously `Insufficient Logging & Monitoring` and moving up from #10 previously. This category is challenging to test for, and isn’t well represented in the CVE/CVSS data. However, failures in this category can directly impact visibility, incident alerting, and forensics.
 
-# Server-Side_Request_Forgery
+## Server-Side_Request_Forgery
