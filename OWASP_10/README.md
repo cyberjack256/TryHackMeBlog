@@ -115,3 +115,6 @@ The former category `XML External Entities (XXE)` is part of this category.
 `Secure Logging & Monitoring Failures` was previously `Insufficient Logging & Monitoring` and moving up from #10 previously. This category is challenging to test for, and isn’t well represented in the CVE/CVSS data. However, failures in this category can directly impact visibility, incident alerting, and forensics.
 
 ## Server-Side_Request_Forgery
+
+# Refernces
+Mcdonald, M., 2020. Web Security for Developers. 1st ed. San Francisco: No Startch Press.
