@@ -62,19 +62,16 @@ Run the docker image using the following options
 -p, --publish list     Publish a container's port(s) to the host
 ```
 
-Using `-p 127.0.0.1:80:80` will ensure that docker is not exposing the port to the outside. It binds `:80` for `127.0.0.1` interface only.
+Using `-p 127.0.0.1:8080:8080` will ensure that docker is not exposing the port to the outside. It binds `:80` for `127.0.0.1` interface only.
 
-![Open ports after docker run](https://cdn.hashnode.com/res/hashnode/image/upload/v1622272280056/WJ91XhpRI.png)
 
 #### Access
 
-If your DVWA is also bound to `:80`, navigate in browser to `localhost`.
+If your DVWA is also bound to `:8080`, navigate in browser to `localhost`.
 
-![DVWA login page](https://cdn.hashnode.com/res/hashnode/image/upload/v1622272303218/lCI2MyiPZ.png)
 
 Login using default `admin/password` credentials.
 
-![Database Setup](https://cdn.hashnode.com/res/hashnode/image/upload/v1622272322285/UY7L7lCpt.png)
 
 As you can see, my instance is missing the following features:
 * PHP allow_url_include
@@ -87,70 +84,60 @@ Copy `php.ini` directly from the docker using `docker cp` command and change the
 ```sh
 $ docker ps
 CONTAINER ID   IMAGE                  COMMAND      CREATED          STATUS          PORTS                  NAMES
-35369924c11e   vulnerables/web-dvwa   "/main.sh"   50 minutes ago   Up 50 minutes   127.0.0.1:80->80/tcp   flamboyant_dirac
+6ba0d3c87c1a   vulnerables/web-dvwa   "/main.sh"   16 minutes ago   Up 16 minutes   127.0.0.1:8080->8080/tcp   friendly_mcnulty
 
-$ docker cp 35369924c11e:/etc/php/7.0/apache2/php.ini .
+$ docker cp 6ba0d3c87c1a:/etc/php/7.0/apache2/php.ini .
 $ subl php.ini
 ```
-
-![Change php.ini to allow URL include](https://cdn.hashnode.com/res/hashnode/image/upload/v1622272407083/lZABoWEW-.png)
 
 Copy the `php.ini` back to docker container
 
 ```sh
-$ docker cp php.ini 35369924c11e:/etc/php/7.0/apache2/php.ini
+$ docker cp php.ini 6ba0d3c87c1a:/etc/php/7.0/apache2/php.ini
 ```
 
 Attach to the docker instance with bash shell and restart Apache
 
 ```text
-$ docker exec -it 35369924c11e bash
-root@35369924c11e:/# service apache2 restart
+$ docker exec -it 6ba0d3c87c1a bash
+root@6ba0d3c87c1a:/# service apache2 restart
 [....] Restarting Apache httpd web server: apache2AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 172.17.0.2. Set the 'ServerName' directive globally to suppress this message
 . ok
 ```
 
 Now if you refresh the page you will see that `allow_url_include` is no longer reporting as disabled.
 
-![Database Setup after php.ini changes](https://cdn.hashnode.com/res/hashnode/image/upload/v1622272424519/_wptBmth9.png)
 
 ##### reCAPTCHA
 
 Now to the reCAPTCHA configuration. Go to [reCAPTCHA Admin](https://google.com/recaptcha/admin/create) (or search for "google recaptcha admin"). Generate v3 API keys, domain names don't matter.
 
 
-![reCAPTCHA admin panel](https://cdn.hashnode.com/res/hashnode/image/upload/v1622272474887/Xybaz8a9S.png)
-
 You can navigate in docker shell to `/var/www/html/config` and try to modify the config file - but none of the text editors is installed, so we go with the `docker cp` way.
 
 Add reCAPTCHA keys to the config file:
 
 ```sh
-$ docker cp 35369924c11e:/var/www/html/config/config.inc.php .
+$ docker cp 6ba0d3c87c1a:/var/www/html/config/config.inc.php .
 $ subl config.inc.php
 ```
 
-![reCAPTCHA API keys](https://cdn.hashnode.com/res/hashnode/image/upload/v1622272608809/FPkwgNNPc.png)
 
 And copy back to the docker.
 
-`$ docker cp config.inc.php 35369924c11e:/var/www/html/config/`
+`$ docker cp config.inc.php 6ba0d3c87c1a:/var/www/html/config/`
 
 Now last time, refresh the `setup.php`
 
-![Final configuration](https://cdn.hashnode.com/res/hashnode/image/upload/v1622273843587/ptZG4Szrh.png)
 
 Click _Create/Reset Database_. You will be logged out after a while, login again. Congratulation, you have configured **Damn Vulnerable Web Application**.
 
-![DVWA Home](https://cdn.hashnode.com/res/hashnode/image/upload/v1622272770664/8BhowN0U1.png)
 
 Last thing to say is that DVWA has 4 difficulty (security) settings. Go to the _DVWA Security_ section to set the _Security Level_.
 
-![DVWA Security](https://cdn.hashnode.com/res/hashnode/image/upload/v1622272787791/Y4pHAxYmQ.png)
 
 #### Persistence
 
-%%[join-cta]
 
 Now that we have modified the **running** docker container, we should somehow make our changes persist through consecutive runs (because next time we start a docker image it will start as a fresh instance - that's the whole idea of containers). This can be done at least in two ways, I am aware of - and I didn't find any meaningful differences between them.
 
@@ -159,9 +146,9 @@ Now that we have modified the **running** docker container, we should somehow ma
 ```sh
 $ docker ps
 CONTAINER ID   IMAGE                  COMMAND      CREATED       STATUS       PORTS                  NAMES
-35369924c11e   vulnerables/web-dvwa   "/main.sh"   3 hours ago   Up 3 hours   127.0.0.1:80->80/tcp   flamboyant_dirac
+6ba0d3c87c1a   vulnerables/web-dvwa   "/main.sh"   16 minutes ago   Up 16 minutes   127.0.0.1:8080->8080/tcp   friendly_mcnulty
 
-$ docker commit 35369924c11e vulnerables/web-dvwa:patched
+$ docker commit 6ba0d3c87c1a vulnerables/web-dvwa:patched
 ```
 
 And verify that a new image is created.
@@ -169,20 +156,17 @@ And verify that a new image is created.
 ```sh
 $ docker images
 REPOSITORY                 TAG       IMAGE ID       CREATED          SIZE
-vulnerables/web-dvwa       patched   85375b203721   15 seconds ago   826MB
-hello-world                latest    d1165f221234   2 months ago     13.3kB
-vulnerables/web-dvwa       latest    ab0d83586b6e   2 years ago      712MB
+vulnerables/web-dvwa       latest    ab0d83586b6e   3 years ago      712MB
 
 $ docker images vulnerables/web-dvwa
 REPOSITORY             TAG       IMAGE ID       CREATED          SIZE
-vulnerables/web-dvwa   patched   a17d6c740d6e   17 seconds ago   826MB
-vulnerables/web-dvwa   latest    ab0d83586b6e   2 years ago      712MB
+vulnerables/web-dvwa   latest    ab0d83586b6e   3 years ago      712MB
 ```
 
 If you want to run patched version, specify tag, like so:
 
 ```sh
-$ docker run --rm -it -d -p 127.0.0.1:80:80 vulnerables/web-dvwa:patched
+$ docker run --rm -it -d -p 127.0.0.1:8080:8080 vulnerables/web-dvwa:patched
 ```
 
 ##### Create a new image
@@ -190,9 +174,9 @@ $ docker run --rm -it -d -p 127.0.0.1:80:80 vulnerables/web-dvwa:patched
 ```sh
 $ docker ps
 CONTAINER ID   IMAGE                  COMMAND      CREATED       STATUS       PORTS                  NAMES
-35369924c11e   vulnerables/web-dvwa   "/main.sh"   3 hours ago   Up 3 hours   127.0.0.1:80->80/tcp   flamboyant_dirac
+6ba0d3c87c1a   vulnerables/web-dvwa   "/main.sh"   16 minutes ago   Up 16 minutes   127.0.0.1:8080->8080/tcp   friendly_mcnulty
 
-$ docker commit 35369924c11e vulnerables/dvwa-patched
+$ docker commit 6ba0d3c87c1a vulnerables/dvwa-patched
 ```
 
 And verify that a new image is created - you start patched version by running this new image.
@@ -200,9 +184,7 @@ And verify that a new image is created - you start patched version by running th
 ```sh
 $ docker images
 REPOSITORY                 TAG       IMAGE ID       CREATED          SIZE
-vulnerables/dvwa-patched   latest    85375b203721   15 seconds ago   826MB
-hello-world                latest    d1165f221234   2 months ago     13.3kB
-vulnerables/web-dvwa       latest    ab0d83586b6e   2 years ago      712MB
+vulnerables/web-dvwa       latest    ab0d83586b6e   3 years ago      712MB
 ```
 
 
