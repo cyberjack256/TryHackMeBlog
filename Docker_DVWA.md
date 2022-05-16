@@ -1,4 +1,3 @@
-
 ---
 title:  Docker_DVWA.md
 description: Setup and Configuration of Docker DVWA
